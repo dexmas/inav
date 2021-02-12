@@ -24,6 +24,8 @@ main_sources(COMMON_SRC
     common/encoding.h
     common/filter.c
     common/filter.h
+    common/fp_pid.c
+    common/fp_pid.h
     common/gps_conversion.c
     common/gps_conversion.h
     common/log.c
@@ -118,6 +120,8 @@ main_sources(COMMON_SRC
     drivers/barometer/barometer_ms56xx.h
     drivers/barometer/barometer_spl06.c
     drivers/barometer/barometer_spl06.h
+    drivers/barometer/barometer_msp.c
+    drivers/barometer/barometer_msp.h
 
     drivers/buf_writer.c
     drivers/buf_writer.h
@@ -148,6 +152,8 @@ main_sources(COMMON_SRC
     drivers/compass/compass_mpu9250.h
     drivers/compass/compass_qmc5883l.c
     drivers/compass/compass_qmc5883l.h
+    drivers/compass/compass_msp.c
+    drivers/compass/compass_msp.h
 
     drivers/display.c
     drivers/display.h
@@ -195,12 +201,14 @@ main_sources(COMMON_SRC
     drivers/osd.h
     drivers/persistent.c
     drivers/persistent.h
-    drivers/pitotmeter_adc.c
-    drivers/pitotmeter_adc.h
-    drivers/pitotmeter_ms4525.c
-    drivers/pitotmeter_ms4525.h
-    drivers/pitotmeter_virtual.c
-    drivers/pitotmeter_virtual.h
+    drivers/pitotmeter/pitotmeter_adc.c
+    drivers/pitotmeter/pitotmeter_adc.h
+    drivers/pitotmeter/pitotmeter_ms4525.c
+    drivers/pitotmeter/pitotmeter_ms4525.h
+    drivers/pitotmeter/pitotmeter_msp.c
+    drivers/pitotmeter/pitotmeter_msp.h
+    drivers/pitotmeter/pitotmeter_virtual.c
+    drivers/pitotmeter/pitotmeter_virtual.h
     drivers/pwm_esc_detect.c
     drivers/pwm_esc_detect.h
     drivers/pwm_mapping.c
@@ -225,16 +233,12 @@ main_sources(COMMON_SRC
     drivers/resource.h
     drivers/rcc.c
     drivers/rcc.h
-    drivers/rx_nrf24l01.c
-    drivers/rx_nrf24l01.h
 	drivers/rx_cc2500.c
 	drivers/rx_cc2500.h
     drivers/rx_pwm.c
     drivers/rx_pwm.h
     drivers/rx_spi.c
     drivers/rx_spi.h
-    drivers/rx_xn297.c
-    drivers/rx_xn297.h
     drivers/serial.c
     drivers/serial.h
     drivers/sound_beeper.c
@@ -321,6 +325,8 @@ main_sources(COMMON_SRC
     flight/rpm_filter.h
     flight/dynamic_gyro_notch.c
     flight/dynamic_gyro_notch.h
+    flight/dynamic_lpf.c
+    flight/dynamic_lpf.h
 
     io/beeper.c
     io/beeper.h
@@ -362,6 +368,8 @@ main_sources(COMMON_SRC
     programming/global_variables.h
     programming/programming_task.c
     programming/programming_task.h
+    programming/pid.c
+    programming/pid.h
 
     rx/crsf.c
     rx/crsf.h
@@ -371,6 +379,9 @@ main_sources(COMMON_SRC
     rx/fport.h
     rx/fport2.c
     rx/fport2.h
+    rx/ghst_protocol.h
+    rx/ghst.c
+    rx/ghst.h
     rx/ibus.c
     rx/ibus.h
     rx/jetiexbus.c
@@ -388,16 +399,6 @@ main_sources(COMMON_SRC
 	rx/cc2500_frsky_d.h
 	rx/cc2500_frsky_x.c
 	rx/cc2500_frsky_x.h
-    rx/nrf24_cx10.c
-    rx/nrf24_cx10.h
-    rx/nrf24_inav.c
-    rx/nrf24_inav.h
-    rx/nrf24_h8_3d.c
-    rx/nrf24_h8_3d.h
-    rx/nrf24_syma.c
-    rx/nrf24_syma.h
-    rx/nrf24_v202.c
-    rx/nrf24_v202.h
     rx/pwm.c
     rx/pwm.h
     rx/frsky_crc.c
@@ -420,8 +421,6 @@ main_sources(COMMON_SRC
     rx/sumd.h
     rx/sumh.c
     rx/sumh.h
-    rx/uib_rx.c
-    rx/uib_rx.h
     rx/xbus.c
     rx/xbus.h
 
@@ -448,10 +447,6 @@ main_sources(COMMON_SRC
     sensors/irlock.h
     sensors/temperature.c
     sensors/temperature.h
-
-    uav_interconnect/uav_interconnect.h
-    uav_interconnect/uav_interconnect_bus.c
-    uav_interconnect/uav_interconnect_rangefinder.c
 
     blackbox/blackbox.c
     blackbox/blackbox.h
@@ -512,6 +507,7 @@ main_sources(COMMON_SRC
     io/gps_ublox.c
     io/gps_nmea.c
     io/gps_naza.c
+    io/gps_msp.c
     io/gps_private.h
     io/ledstrip.c
     io/ledstrip.h
@@ -570,6 +566,8 @@ main_sources(COMMON_SRC
     telemetry/frsky.h
     telemetry/frsky_d.c
     telemetry/frsky_d.h
+    telemetry/ghst.c
+    telemetry/ghst.h
     telemetry/hott.c
     telemetry/hott.h
     telemetry/ibus_shared.c

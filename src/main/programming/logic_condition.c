@@ -30,12 +30,14 @@
 
 #include "programming/logic_condition.h"
 #include "programming/global_variables.h"
+#include "programming/pid.h"
 #include "common/utils.h"
 #include "rx/rx.h"
 #include "common/maths.h"
 #include "fc/fc_core.h"
 #include "fc/rc_controls.h"
 #include "fc/runtime_config.h"
+#include "fc/rc_modes.h"
 #include "navigation/navigation.h"
 #include "sensors/battery.h"
 #include "sensors/pitotmeter.h"
@@ -53,6 +55,7 @@ PG_REGISTER_ARRAY_WITH_RESET_FN(logicCondition_t, MAX_LOGIC_CONDITIONS, logicCon
 
 EXTENDED_FASTRAM uint64_t logicConditionsGlobalFlags;
 EXTENDED_FASTRAM int logicConditionValuesByType[LOGIC_CONDITION_LAST];
+EXTENDED_FASTRAM rcChannelOverride_t rcChannelOverrides[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 
 void pgResetFn_logicConditions(logicCondition_t *instance)
 {
@@ -306,6 +309,14 @@ static int logicConditionCompute(
             return scaleRange(constrain(operandA, 0, 1000), 0, 1000, 0, operandB);
         break;
 
+        case LOGIC_CONDITION_RC_CHANNEL_OVERRIDE:
+            temporaryValue = constrain(operandA - 1, 0, MAX_SUPPORTED_RC_CHANNEL_COUNT - 1);
+            rcChannelOverrides[temporaryValue].active = true;
+            rcChannelOverrides[temporaryValue].value = constrain(operandB, PWM_RANGE_MIN, PWM_RANGE_MAX);
+            LOGIC_CONDITION_GLOBAL_FLAG_ENABLE(LOGIC_CONDITION_GLOBAL_FLAG_OVERRIDE_RC_CHANNEL);
+            return true;
+        break;
+
         default:
             return false;
             break; 
@@ -482,6 +493,22 @@ static int logicConditionGetFlightOperandValue(int operand) {
             return constrain(sqrtf(sq(GPS_distanceToHome) + sq(getEstimatedActualPosition(Z)/100)), 0, INT16_MAX);
             break;
 
+        case LOGIC_CONDITION_OPERAND_FLIGHT_CRSF_LQ:
+        #ifdef USE_SERIALRX_CRSF
+            return rxLinkStatistics.uplinkLQ;
+        #else
+            return 0;
+        #endif
+            break;
+
+        case LOGIC_CONDITION_OPERAND_FLIGHT_CRSF_SNR:
+        #ifdef USE_SERIALRX_CRSF
+            return rxLinkStatistics.uplinkSNR;
+        #else
+            return 0;
+        #endif
+            break;
+
         default:
             return 0;
             break;
@@ -528,6 +555,14 @@ static int logicConditionGetFlightModeOperandValue(int operand) {
             return (bool) FLIGHT_MODE(AIRMODE_ACTIVE);
             break;
 
+        case LOGIC_CONDITION_OPERAND_FLIGHT_MODE_USER1:
+            return IS_RC_MODE_ACTIVE(BOXUSER1);
+            break;
+
+        case LOGIC_CONDITION_OPERAND_FLIGHT_MODE_USER2:
+            return IS_RC_MODE_ACTIVE(BOXUSER2);
+            break;
+
         default:
             return 0;
             break;
@@ -570,6 +605,12 @@ int logicConditionGetOperandValue(logicOperandType_e type, int operand) {
             }
             break;
 
+        case LOGIC_CONDITION_OPERAND_TYPE_PID:
+            if (operand >= 0 && operand < MAX_PROGRAMMING_PID_COUNT) {
+                retVal = programmingPidGetOutput(operand);
+            }
+            break;
+
         default:
             break;
     }
@@ -594,9 +635,14 @@ void logicConditionUpdateTask(timeUs_t currentTimeUs) {
     //Disable all flags
     logicConditionsGlobalFlags = 0;
 
+    for (uint8_t i = 0; i < MAX_SUPPORTED_RC_CHANNEL_COUNT; i++) {
+        rcChannelOverrides[i].active = false;
+    }
+
     for (uint8_t i = 0; i < MAX_LOGIC_CONDITIONS; i++) {
         logicConditionProcess(i);
     }
+
 #ifdef USE_I2C_IO_EXPANDER
     ioPortExpanderSync();
 #endif
@@ -637,4 +683,12 @@ int16_t getRcCommandOverride(int16_t command[], uint8_t axis) {
     }
 
     return outputValue;
+}
+
+int16_t getRcChannelOverride(uint8_t channel, int16_t originalValue) {
+    if (rcChannelOverrides[channel].active) {
+        return rcChannelOverrides[channel].value;
+    } else {
+        return originalValue;
+    }
 }
